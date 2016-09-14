@@ -1,7 +1,7 @@
 package main
 
-import "./managers"
+import "github.com/Gwennin/IntelligentNetwork_Go/src/managers/server"
 
 func main() {
-	managers.StartServer()
+	server.StartServer()
 }
