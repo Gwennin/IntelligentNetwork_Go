@@ -8,6 +8,9 @@ import (
 
 func getRoutes() {
 	router := mux.NewRouter()
+	router.HandleFunc("/login", controllers.Login).Methods("GET")
+	router.HandleFunc("/logout", controllers.Logout).Methods("GET")
+
 	router.HandleFunc("/users", controllers.ListUsers).Methods("GET")
 	router.HandleFunc("/users/add", controllers.AddUser).Methods("POST")
 	router.HandleFunc("/users/{alias}/delete", controllers.DeleteUser).Methods("DELETE")
