@@ -9,11 +9,21 @@ import (
 )
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	users := models.ListUsers()
 	json.NewEncoder(w).Encode(users)
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	user := new(models.NewUser)
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		return
@@ -31,6 +41,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 
@@ -38,6 +53,11 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 
@@ -49,6 +69,11 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUserSpace(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 	space := vars["space"]
@@ -61,6 +86,11 @@ func AddUserSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 	space := vars["space"]
@@ -73,6 +103,11 @@ func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListUserSpaces(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 
@@ -81,6 +116,11 @@ func ListUserSpaces(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListOwnedSpaces(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 

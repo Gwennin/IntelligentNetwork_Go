@@ -10,11 +10,21 @@ import (
 )
 
 func ListPublicSpaces(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	spaces := models.ListPublicSpaces()
 	json.NewEncoder(w).Encode(spaces)
 }
 
 func AddSpace(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	space := new(models.Space)
 	if err := json.NewDecoder(r.Body).Decode(space); err != nil {
 		return
@@ -24,6 +34,11 @@ func AddSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSpace(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	name := vars["name"]
 
@@ -31,6 +46,11 @@ func DeleteSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListLinks(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	name := vars["name"]
 	// TODO Change this to get it in session
@@ -41,6 +61,11 @@ func ListLinks(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddLink(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	name := vars["name"]
 
@@ -60,6 +85,11 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteLink(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	name := vars["name"]
 	strId := vars["id"]
@@ -69,6 +99,11 @@ func DeleteLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetLinkRead(w http.ResponseWriter, r *http.Request) {
+	if !IsTokenValid(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	strId := vars["id"]
 	id, _ := strconv.Atoi(strId)
