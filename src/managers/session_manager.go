@@ -3,6 +3,9 @@ package managers
 import (
 	"github.com/Gwennin/IntelligentNetwork_Go/src/models"
 	"github.com/nu7hatch/gouuid"
+	"log"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -51,4 +54,35 @@ func CloseSession(token string) {
 	mutex.Lock()
 	delete(_sessions, token)
 	mutex.Unlock()
+}
+
+func CleanSessions() {
+	sessionCleanUp := os.Getenv("SESSION_CLEANUP")
+	cleanUpSeconds, _ := strconv.Atoi(sessionCleanUp)
+	ticker := time.NewTicker(time.Duration(cleanUpSeconds) * time.Second)
+	go func() {
+		for t := range ticker.C {
+			log.Println("Session cleaning at", t)
+			mutex.Lock()
+
+			var toRemove []string
+
+			for token, session := range _sessions {
+				sessionTimeout := os.Getenv("SESSION_TIMEOUT")
+				seconds, _ := strconv.Atoi(sessionTimeout)
+				expireDate := session.OpenedOn.Add(time.Duration(seconds) * time.Second)
+
+				if !time.Now().Before(expireDate) {
+					toRemove = append(toRemove, token)
+				}
+			}
+
+			for _, token := range toRemove {
+				log.Println("Session", token, "cleaned")
+				delete(_sessions, token)
+			}
+
+			mutex.Unlock()
+		}
+	}()
 }

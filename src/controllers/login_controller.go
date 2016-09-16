@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -38,12 +37,6 @@ func IsTokenValid(r *http.Request) bool {
 			seconds, _ := strconv.Atoi(sessionTimeout)
 			expireDate := openedOn.Add(time.Duration(seconds) * time.Second)
 
-			log.Println(openedOn)
-			log.Println(seconds)
-
-			log.Println(expireDate)
-			log.Println(time.Now())
-
 			if time.Now().Before(expireDate) {
 				return true
 			}
@@ -58,13 +51,9 @@ func IsTokenValid(r *http.Request) bool {
 func ExtractToken(r *http.Request) *string {
 	authHeader := r.Header.Get("Authorization")
 
-	log.Println("Authorization header")
-	log.Println(authHeader)
-
 	const bearerPrefix = "Bearer "
 	if authHeader != "" && strings.HasPrefix(authHeader, bearerPrefix) {
 		token := strings.TrimPrefix(authHeader, bearerPrefix)
-		log.Println(token)
 		return &token
 	}
 	return nil

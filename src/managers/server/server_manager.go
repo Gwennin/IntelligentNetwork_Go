@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers/db"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,7 @@ func StartServer() {
 	db.InitializeDB()
 
 	getRoutes()
+	managers.CleanSessions()
 
 	listenAddr := os.Getenv("LISTEN_ADDRESS")
 	listenPort := os.Getenv("LISTEN_PORT")
