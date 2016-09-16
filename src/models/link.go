@@ -26,11 +26,15 @@ func ListLinks(space string, username string) ([]Link, *errors.INError) {
 
 	if database != nil {
 		var links []Link
-		database.Table("links").Select("links.*, (r.read_id IS NOT NULL) AS readed").
+		err := database.Table("links").Select("links.*, (r.read_id IS NOT NULL) AS readed").
 			Joins("LEFT JOIN readed_links r ON links.id = r.read_link AND r.reader = ?", username).
-			Where("posted_in = ?", space).Find(&links)
+			Where("posted_in = ?", space).Find(&links).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []Link{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return links, nil
 	}
@@ -45,9 +49,14 @@ func AddLink(link *Link) (*Link, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
-		database.Create(link)
+		err := database.Create(link).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []Link{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
+
 		return link, nil
 	}
 
@@ -62,7 +71,7 @@ func DeleteLink(id int, name string) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Where("id = ? AND posted_in = ?", id, name).Delete(&Link{})
+		err = database.Where("id = ? AND posted_in = ?", id, name).Delete(&Link{}).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -82,7 +91,7 @@ func SetLinkRead(id int, by string) *errors.INError {
 		readed.ReadOn = time.Now()
 		readed.Reader = by
 
-		database.Create(readed)
+		err = database.Create(readed).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}

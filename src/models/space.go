@@ -30,9 +30,13 @@ func ListPublicSpaces() ([]Space, *errors.INError) {
 
 	if database != nil {
 		var spaces []Space
-		database.Model(&Space{}).Where("public = TRUE").Find(&spaces)
+		err := database.Model(&Space{}).Where("public = TRUE").Find(&spaces).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []Space{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return spaces, nil
 	}
@@ -61,7 +65,7 @@ func addSpace(space *Space, public bool) *errors.INError {
 		creatingSpace.Owner = space.Owner
 		creatingSpace.Public = public
 
-		database.Create(creatingSpace)
+		err = database.Create(creatingSpace).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -76,7 +80,7 @@ func DeleteSpace(name string) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Where("name = ?", name).Delete(&Space{})
+		err = database.Where("name = ?", name).Delete(&Space{}).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}

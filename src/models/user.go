@@ -24,8 +24,12 @@ func IsUserExist(alias string) (bool, *errors.INError) {
 
 	if database != nil {
 		var count int
-		database.Model(&User{}).Where("username = ?", alias).Count(&count)
+		err := database.Model(&User{}).Where("username = ?", alias).Count(&count).Error
 		mutex.Unlock()
+
+		if err != nil {
+			return false, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return count == 1, nil
 	}
@@ -41,8 +45,12 @@ func PasswordMatch(alias string, password string) (bool, *errors.INError) {
 
 	if database != nil {
 		var count int
-		database.Model(&User{}).Where("username = ?", alias).Where("password = ?", password).Count(&count)
+		err := database.Model(&User{}).Where("username = ?", alias).Where("password = ?", password).Count(&count).Error
 		mutex.Unlock()
+
+		if err != nil {
+			return false, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return count == 1, nil
 	}
@@ -58,9 +66,13 @@ func ListUsers() ([]User, *errors.INError) {
 
 	if database != nil {
 		var users []User
-		database.Model(&User{}).Find(&users)
+		err := database.Model(&User{}).Find(&users).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []User{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return users, nil
 	}
@@ -75,9 +87,14 @@ func AddUser(user *NewUser) (string, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
-		database.Create(user)
+		err := database.Create(user).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return "", errors.NewError(5, "An error occured while accessing to the database.")
+		}
+
 		return user.Username, nil
 	}
 
@@ -92,7 +109,7 @@ func DeleteUser(alias string) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Where("username = ?", alias).Delete(&User{})
+		err = database.Where("username = ?", alias).Delete(&User{}).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -107,7 +124,7 @@ func ChangePassword(alias string, password string) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Model(&User{}).Where("username = ?", alias).Update("password", password)
+		err = database.Model(&User{}).Where("username = ?", alias).Update("password", password)
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -122,7 +139,7 @@ func AddUserSpace(userSpace *UserSpace) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Create(userSpace)
+		err = database.Create(userSpace).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -137,7 +154,7 @@ func DeleteUserSpace(userSpace *UserSpace) *errors.INError {
 	var err *errors.INError = nil
 
 	if database != nil {
-		database.Where("user_id = ? AND space_id = ?", userSpace.UserId, userSpace.SpaceId).Delete(&UserSpace{})
+		err = database.Where("user_id = ? AND space_id = ?", userSpace.UserId, userSpace.SpaceId).Delete(&UserSpace{}).Error
 	} else {
 		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
@@ -152,9 +169,13 @@ func ListUserSpaces(alias string) ([]string, *errors.INError) {
 
 	if database != nil {
 		var spaces []string
-		database.Table("user_spaces").Where("user_id = ?", alias).Pluck("space_id", &spaces)
+		err := database.Table("user_spaces").Where("user_id = ?", alias).Pluck("space_id", &spaces).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []string{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return spaces, nil
 	}
@@ -170,9 +191,13 @@ func ListOwnedSpaces(alias string) ([]string, *errors.INError) {
 
 	if database != nil {
 		var spaces []string
-		database.Table("spaces").Where("owner = ?", alias).Pluck("name", &spaces)
+		err := database.Table("spaces").Where("owner = ?", alias).Pluck("name", &spaces).Error
 
 		mutex.Unlock()
+
+		if err != nil {
+			return []string{}, errors.NewError(5, "An error occured while accessing to the database.")
+		}
 
 		return spaces, nil
 	}
