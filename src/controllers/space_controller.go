@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/Gwennin/IntelligentNetwork_Go/src/helpers"
+	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/models"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -10,7 +12,7 @@ import (
 )
 
 func ListPublicSpaces(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -20,7 +22,7 @@ func ListPublicSpaces(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddSpace(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -34,7 +36,7 @@ func AddSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSpace(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -46,22 +48,23 @@ func DeleteSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListLinks(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	vars := mux.Vars(r)
 	name := vars["name"]
-	// TODO Change this to get it in session
-	alias := "user"
+
+	token := helpers.ExtractToken(r)
+	alias := *managers.GetSessionUser(*token)
 
 	links := models.ListLinks(name, alias)
 	json.NewEncoder(w).Encode(links)
 }
 
 func AddLink(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -75,9 +78,11 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := helpers.ExtractToken(r)
+	alias := *managers.GetSessionUser(*token)
+
 	link.PostedIn = name
-	// TODO change this to get it from session
-	link.PostedBy = "user"
+	link.PostedBy = alias
 	link.PostedOn = time.Now()
 
 	newLink := models.AddLink(link)
@@ -85,7 +90,7 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteLink(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -99,7 +104,7 @@ func DeleteLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetLinkRead(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -108,8 +113,8 @@ func SetLinkRead(w http.ResponseWriter, r *http.Request) {
 	strId := vars["id"]
 	id, _ := strconv.Atoi(strId)
 
-	// TODO Change this to get it in session
-	alias := "user"
+	token := helpers.ExtractToken(r)
+	alias := *managers.GetSessionUser(*token)
 
 	models.SetLinkRead(id, alias)
 }

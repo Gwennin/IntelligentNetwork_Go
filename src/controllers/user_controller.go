@@ -3,13 +3,15 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/Gwennin/IntelligentNetwork_Go/src/helpers"
+	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/models"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -19,7 +21,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -41,25 +43,41 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	vars := mux.Vars(r)
 	alias := vars["alias"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	models.DeleteUser(alias)
 }
 
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	vars := mux.Vars(r)
 	alias := vars["alias"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
@@ -69,7 +87,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUserSpace(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -77,6 +95,14 @@ func AddUserSpace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 	space := vars["space"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	userSpace := new(models.UserSpace)
 	userSpace.UserId = alias
@@ -86,7 +112,7 @@ func AddUserSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -94,6 +120,14 @@ func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	alias := vars["alias"]
 	space := vars["space"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	userSpace := new(models.UserSpace)
 	userSpace.UserId = alias
@@ -103,26 +137,42 @@ func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListUserSpaces(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	vars := mux.Vars(r)
 	alias := vars["alias"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	spaces := models.ListUserSpaces(alias)
 	json.NewEncoder(w).Encode(spaces)
 }
 
 func ListOwnedSpaces(w http.ResponseWriter, r *http.Request) {
-	if !IsTokenValid(r) {
+	if !helpers.IsTokenValid(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	vars := mux.Vars(r)
 	alias := vars["alias"]
+
+	token := helpers.ExtractToken(r)
+	currentUser := *managers.GetSessionUser(*token)
+
+	if currentUser != alias {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	spaces := models.ListOwnedSpaces(alias)
 	json.NewEncoder(w).Encode(spaces)
