@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers/db"
 )
 
@@ -24,7 +25,7 @@ func (newSpace) TableName() string {
 	return "spaces"
 }
 
-func ListPublicSpaces() []Space {
+func ListPublicSpaces() ([]Space, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -33,23 +34,26 @@ func ListPublicSpaces() []Space {
 
 		mutex.Unlock()
 
-		return spaces
+		return spaces, nil
 	}
 
 	mutex.Unlock()
-	return []Space{}
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return []Space{}, err
 }
 
-func AddSpace(space *Space) {
-	addSpace(space, true)
+func AddSpace(space *Space) *errors.INError {
+	return addSpace(space, true)
 }
 
-func AddPrivateSpace(space *Space) {
-	addSpace(space, false)
+func AddPrivateSpace(space *Space) *errors.INError {
+	return addSpace(space, false)
 }
 
-func addSpace(space *Space, public bool) {
+func addSpace(space *Space, public bool) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		creatingSpace := new(newSpace)
@@ -58,17 +62,26 @@ func addSpace(space *Space, public bool) {
 		creatingSpace.Public = public
 
 		database.Create(creatingSpace)
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func DeleteSpace(name string) {
+func DeleteSpace(name string) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Where("name = ?", name).Delete(&Space{})
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }

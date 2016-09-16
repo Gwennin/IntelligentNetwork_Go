@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers/db"
 )
 
@@ -18,7 +19,7 @@ func (NewUser) TableName() string {
 	return "users"
 }
 
-func IsUserExist(alias string) bool {
+func IsUserExist(alias string) (bool, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -26,14 +27,16 @@ func IsUserExist(alias string) bool {
 		database.Model(&User{}).Where("username = ?", alias).Count(&count)
 		mutex.Unlock()
 
-		return count == 1
+		return count == 1, nil
 	}
 
 	mutex.Unlock()
-	return false
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return false, err
 }
 
-func PasswordMatch(alias string, password string) bool {
+func PasswordMatch(alias string, password string) (bool, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -41,14 +44,16 @@ func PasswordMatch(alias string, password string) bool {
 		database.Model(&User{}).Where("username = ?", alias).Where("password = ?", password).Count(&count)
 		mutex.Unlock()
 
-		return count == 1
+		return count == 1, nil
 	}
 
 	mutex.Unlock()
-	return false
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return false, err
 }
 
-func ListUsers() []User {
+func ListUsers() ([]User, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -57,68 +62,92 @@ func ListUsers() []User {
 
 		mutex.Unlock()
 
-		return users
+		return users, nil
 	}
 
 	mutex.Unlock()
-	return []User{}
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return []User{}, err
 }
 
-func AddUser(user *NewUser) string {
+func AddUser(user *NewUser) (string, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
 		database.Create(user)
 
 		mutex.Unlock()
-		return user.Username
+		return user.Username, nil
 	}
 
 	mutex.Unlock()
-	return ""
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return "", err
 }
 
-func DeleteUser(alias string) {
+func DeleteUser(alias string) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Where("username = ?", alias).Delete(&User{})
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func ChangePassword(alias string, password string) {
+func ChangePassword(alias string, password string) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Model(&User{}).Where("username = ?", alias).Update("password", password)
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func AddUserSpace(userSpace *UserSpace) {
+func AddUserSpace(userSpace *UserSpace) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Create(userSpace)
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func DeleteUserSpace(userSpace *UserSpace) {
+func DeleteUserSpace(userSpace *UserSpace) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Where("user_id = ? AND space_id = ?", userSpace.UserId, userSpace.SpaceId).Delete(&UserSpace{})
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func ListUserSpaces(alias string) []string {
+func ListUserSpaces(alias string) ([]string, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -127,14 +156,16 @@ func ListUserSpaces(alias string) []string {
 
 		mutex.Unlock()
 
-		return spaces
+		return spaces, nil
 	}
 
 	mutex.Unlock()
-	return []string{}
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return []string{}, err
 }
 
-func ListOwnedSpaces(alias string) []string {
+func ListOwnedSpaces(alias string) ([]string, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -143,9 +174,11 @@ func ListOwnedSpaces(alias string) []string {
 
 		mutex.Unlock()
 
-		return spaces
+		return spaces, nil
 	}
 
 	mutex.Unlock()
-	return []string{}
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return []string{}, err
 }

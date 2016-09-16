@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers/db"
 	"time"
 )
@@ -20,7 +21,7 @@ type readedLink struct {
 	ReadOn   time.Time
 }
 
-func ListLinks(space string, username string) []Link {
+func ListLinks(space string, username string) ([]Link, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
@@ -31,39 +32,49 @@ func ListLinks(space string, username string) []Link {
 
 		mutex.Unlock()
 
-		return links
+		return links, nil
 	}
 
 	mutex.Unlock()
-	return []Link{}
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return []Link{}, err
 }
 
-func AddLink(link *Link) *Link {
+func AddLink(link *Link) (*Link, *errors.INError) {
 	database, mutex := db.GetDB()
 
 	if database != nil {
 		database.Create(link)
 
 		mutex.Unlock()
-		return link
+		return link, nil
 	}
 
 	mutex.Unlock()
-	return nil
+
+	err := errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
+	return nil, err
 }
 
-func DeleteLink(id int, name string) {
+func DeleteLink(id int, name string) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		database.Where("id = ? AND posted_in = ?", id, name).Delete(&Link{})
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }
 
-func SetLinkRead(id int, by string) {
+func SetLinkRead(id int, by string) *errors.INError {
 	database, mutex := db.GetDB()
+	var err *errors.INError = nil
 
 	if database != nil {
 		readed := new(readedLink)
@@ -72,7 +83,11 @@ func SetLinkRead(id int, by string) {
 		readed.Reader = by
 
 		database.Create(readed)
+	} else {
+		err = errors.FatalError(1, "Unable to access to the database. May be the connection is closed.")
 	}
 
 	mutex.Unlock()
+
+	return err
 }

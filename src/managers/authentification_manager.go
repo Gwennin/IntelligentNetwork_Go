@@ -3,11 +3,12 @@ package managers
 import (
 	"os"
 
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/models"
 )
 
 type Authenticator interface {
-	Authenticate(username string, password string) bool
+	Authenticate(username string, password string) (bool, *errors.INError)
 }
 
 func GetAuthenticator() Authenticator {
@@ -28,8 +29,6 @@ func newDbAuthenticator() Authenticator {
 	return dbAuthenticator{}
 }
 
-func (dbAuthenticator) Authenticate(username string, password string) bool {
-	match := models.PasswordMatch(username, password)
-
-	return match
+func (dbAuthenticator) Authenticate(username string, password string) (bool, *errors.INError) {
+	return models.PasswordMatch(username, password)
 }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/helpers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/models"
@@ -16,8 +17,12 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users := models.ListUsers()
-	json.NewEncoder(w).Encode(users)
+	users, err := models.ListUsers()
+	if err == nil {
+		json.NewEncoder(w).Encode(users)
+	} else {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
@@ -28,18 +33,28 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	user := new(models.NewUser)
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+		err := errors.NewError(4, "Unable to decode body content.")
+		helpers.WriteResponseError(err, w)
 		return
 	}
 
-	username := models.AddUser(user)
+	username, userErr := models.AddUser(user)
+	if userErr != nil {
+		helpers.WriteResponseError(userErr, w)
+		return
+	}
 
 	space := new(models.Space)
 	space.Name = "u_" + username
 	space.Owner = username
 
-	models.AddPrivateSpace(space)
+	spaceErr := models.AddPrivateSpace(space)
 
-	json.NewEncoder(w).Encode(username)
+	if spaceErr == nil {
+		json.NewEncoder(w).Encode(username)
+	} else {
+		helpers.WriteResponseError(spaceErr, w)
+	}
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +74,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.DeleteUser(alias)
+	err := models.DeleteUser(alias)
+	if err != nil {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +101,10 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	buf.ReadFrom(r.Body)
 	password := buf.String()
 
-	models.ChangePassword(alias, password)
+	err := models.ChangePassword(alias, password)
+	if err != nil {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func AddUserSpace(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +129,10 @@ func AddUserSpace(w http.ResponseWriter, r *http.Request) {
 	userSpace.UserId = alias
 	userSpace.SpaceId = space
 
-	models.AddUserSpace(userSpace)
+	err := models.AddUserSpace(userSpace)
+	if err != nil {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +157,10 @@ func DeleteUserSpace(w http.ResponseWriter, r *http.Request) {
 	userSpace.UserId = alias
 	userSpace.SpaceId = space
 
-	models.DeleteUserSpace(userSpace)
+	err := models.DeleteUserSpace(userSpace)
+	if err != nil {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func ListUserSpaces(w http.ResponseWriter, r *http.Request) {
@@ -153,8 +180,12 @@ func ListUserSpaces(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	spaces := models.ListUserSpaces(alias)
-	json.NewEncoder(w).Encode(spaces)
+	spaces, err := models.ListUserSpaces(alias)
+	if err == nil {
+		json.NewEncoder(w).Encode(spaces)
+	} else {
+		helpers.WriteResponseError(err, w)
+	}
 }
 
 func ListOwnedSpaces(w http.ResponseWriter, r *http.Request) {
@@ -174,6 +205,10 @@ func ListOwnedSpaces(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	spaces := models.ListOwnedSpaces(alias)
-	json.NewEncoder(w).Encode(spaces)
+	spaces, err := models.ListOwnedSpaces(alias)
+	if err == nil {
+		json.NewEncoder(w).Encode(spaces)
+	} else {
+		helpers.WriteResponseError(err, w)
+	}
 }

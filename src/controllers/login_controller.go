@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/Gwennin/IntelligentNetwork_Go/src/errors"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/helpers"
 	"github.com/Gwennin/IntelligentNetwork_Go/src/managers"
 	"net/http"
@@ -12,16 +13,26 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		authenticator := managers.GetAuthenticator()
 
-		if authenticator != nil && authenticator.Authenticate(username, password) {
-			token := managers.OpenSession(username)
-			w.Write([]byte(token))
+		if authenticator != nil {
+			authenticated, err := authenticator.Authenticate(username, password)
+
+			if err != nil {
+				helpers.WriteResponseError(err, w)
+			} else if authenticated {
+				token := managers.OpenSession(username)
+				w.Write([]byte(token))
+			} else {
+				w.WriteHeader(http.StatusUnauthorized)
+			}
 		} else {
-			w.WriteHeader(http.StatusUnauthorized)
+			err := errors.FatalError(3, "No authenticator found")
+			helpers.WriteResponseError(err, w)
 		}
 
 		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	err := errors.NewError(2, "No authorization header found.")
+	helpers.WriteResponseError(err, w)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +46,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	if token != nil {
 		managers.CloseSession(*token)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
+		err := errors.NewError(2, "No authorization header found.")
+		helpers.WriteResponseError(err, w)
 	}
 }
